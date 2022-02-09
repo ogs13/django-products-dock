@@ -1,0 +1,54 @@
+version: '3.9'
+
+services:
+  postgres-db:
+    container_name: pg-container
+    image: postgres:13.5
+    restart: always
+    #volumes:
+      #local_path:container_path
+      #- /var/lib/postgresql/data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    env_file:
+      - ./postgresql/.env.db
+    networks:
+      - postgres
+
+  redis:
+    image: redis:alpine
+    restart: always
+    expose:
+      - 6379
+    networks:
+      - postgres
+
+  django:
+    build: 
+      context: core/
+      dockerfile: Dockerfile    
+    container_name: django-products
+    command: >
+      gunicorn core.wsgi:application --bind 0.0.0.0:8000 
+    restart: always
+    volumes:
+      - ./static_cdn/static:/home/app/static_cdn/static
+    #  - django_app_volume:/home/app/core
+    expose:
+      - 8000 
+    ports:
+      - 8000:8000
+    depends_on:
+      - postgres-db
+      - redis
+    env_file:
+      - core/.env
+    networks:
+      - postgres
+  
+volumes:
+  django_app_volume:
+
+networks:
+  postgres:
+    driver: bridge
