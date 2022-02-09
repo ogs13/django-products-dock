@@ -43,7 +43,7 @@ class ProductsListView(ListView):
     
     def cache_is_not_valid(self, context:Dict[str,Any]) -> bool:
         '''
-        
+        compares data update date and page load date
         '''
         session = self.request.session
 
